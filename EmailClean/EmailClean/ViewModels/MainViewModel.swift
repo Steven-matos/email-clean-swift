@@ -77,7 +77,7 @@ class MainViewModel: ObservableObject {
             try await Task.sleep(for: .seconds(1))
             
             // Simulate fetching emails from backend
-            let fetchedEmails = try await backendAPIClient.fetchEmails()
+            let fetchedEmails = try await backendAPIClient.fetchEmails(accountId: nil, category: nil)
             
             emails = fetchedEmails
             isLoading = false
