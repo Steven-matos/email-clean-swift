@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>EmailClean</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>Default Configuration</string>
+					<key>UISceneDelegateClassName</key>
+					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+					<key>UISceneStoryboardFile</key>
+					<string>Main</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>AccentColor</string>
+		<key>UIImageName</key>
+		<string>AppIcon</string>
+	</dict>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	
+	<!-- Privacy Declarations -->
+	<key>NSUserTrackingUsageDescription</key>
+	<string>We use this to provide personalized AI email categorization and improve our service. You can opt out at any time.</string>
+	
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>api.emailclean.com</key>
+			<dict>
+				<key>NSExceptionRequiresForwardSecrecy</key>
+				<false/>
+				<key>NSExceptionMinimumTLSVersion</key>
+				<string>TLSv1.2</string>
+				<key>NSThirdPartyExceptionRequiresForwardSecrecy</key>
+				<false/>
+			</dict>
+		</dict>
+	</dict>
+	
+	<!-- URL Schemes for OAuth -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.emailclean.oauth</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>emailclean</string>
+			</array>
+		</dict>
+	</array>
+	
+	<!-- Background Modes -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>background-fetch</string>
+		<string>background-processing</string>
+	</array>
+	
+	<!-- App Capabilities -->
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>armv7</string>
+	</array>
+	
+	<!-- Minimum iOS Version -->
+	<key>MinimumOSVersion</key>
+	<string>17.0</string>
+	
+	<!-- App Category -->
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.productivity</string>
+	
+	<!-- File Sharing -->
+	<key>UIFileSharingEnabled</key>
+	<false/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<false/>
+	
+	<!-- Status Bar -->
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleDefault</string>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<true/>
+	
+	<!-- Accessibility -->
+	<key>UIAccessibilityEnabled</key>
+	<true/>
+	
+	<!-- Localization -->
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+	</array>
+	
+	<!-- Privacy Descriptions -->
+	<key>NSNetworkVolumesUsageDescription</key>
+	<string>EmailClean needs network access to sync your emails and communicate with AI processing servers.</string>
+	
+	<key>NSLocationUsageDescription</key>
+	<string>EmailClean may use your location to provide localized email categorization and time zone-based scheduling.</string>
+	
+	<key>NSContactsUsageDescription</key>
+	<string>EmailClean can access your contacts to better identify important senders and personalize email organization.</string>
+	
+	<key>NSCalendarsUsageDescription</key>
+	<string>EmailClean can access your calendar to extract events from emails and schedule email processing.</string>
+	
+	<!-- Security -->
+	<key>NSAllowsArbitraryLoadsInWebContent</key>
+	<false/>
+	
+	<!-- Push Notifications -->
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	
+	<!-- App Icon -->
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
+	
+	<!-- Development -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	
+	<!-- Main Interface -->
+	<key>UIMainStoryboardFile</key>
+	<string></string>
+	
+	<!-- Scene Delegate -->
+	<key>UISceneDelegate</key>
+	<string></string>
+</dict>
+</plist> 
