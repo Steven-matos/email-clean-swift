@@ -85,8 +85,8 @@ class EmailAccountService: EmailAccountServiceProtocol {
             return try await refreshGmailTokens(refreshToken: refreshToken)
         case .outlook:
             return try await refreshOutlookTokens(refreshToken: refreshToken)
-        case .icloud:
-            return try await refreshICloudTokens(refreshToken: refreshToken)
+        case .applemail:
+            return try await refreshAppleMailTokens(refreshToken: refreshToken)
         case .yahoo:
             return try await refreshYahooTokens(refreshToken: refreshToken)
         case .other:
@@ -117,10 +117,10 @@ class EmailAccountService: EmailAccountServiceProtocol {
         )
     }
     
-    private func refreshICloudTokens(refreshToken: String) async throws -> OAuthTokenResponse {
-        // iCloud token refresh implementation
+    private func refreshAppleMailTokens(refreshToken: String) async throws -> OAuthTokenResponse {
+        // Apple Mail token refresh implementation
         return OAuthTokenResponse(
-            accessToken: "refreshed_icloud_token",
+            accessToken: "refreshed_applemail_token",
             refreshToken: refreshToken,
             expiresIn: 3600,
             tokenType: "Bearer",

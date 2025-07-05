@@ -4,14 +4,20 @@ struct ContentView: View {
     @EnvironmentObject var appStateManager: AppStateManager
     
     var body: some View {
-        Group {
-            if appStateManager.isAuthenticated {
-                MainMailboxView()
-            } else {
-                LoginView()
+        ZStack {
+            // Global background
+            Color.primaryBackground
+                .ignoresSafeArea()
+            
+            Group {
+                if appStateManager.isAuthenticated {
+                    MainMailboxView()
+                } else {
+                    LoginView()
+                }
             }
+            .animation(.easeInOut(duration: 0.5), value: appStateManager.isAuthenticated)
         }
-        .animation(.easeInOut(duration: 0.3), value: appStateManager.isAuthenticated)
     }
 }
 

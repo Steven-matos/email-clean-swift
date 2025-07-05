@@ -5,7 +5,7 @@ EmailClean is an iOS email client designed to combat email overload through inte
 ## 🚀 Features
 
 ### Core Email Management
-- **Multiple Email Providers**: Connect Gmail, Outlook, iCloud, Yahoo, and other email accounts
+- **Multiple Email Providers**: Connect Gmail, Outlook, Apple Mail, Yahoo, and other email accounts
 - **Unified Inbox**: Manage all your emails in one centralized location
 - **Standard Email Operations**: Compose, reply, forward, delete, archive, and organize emails
 - **File Attachments**: View and download attachments from emails
@@ -62,7 +62,7 @@ EmailClean/
 #### Authentication Flow
 1. **OAuth 2.0 Integration**: Secure authentication with email providers
 2. **Token Management**: Secure storage and refresh using iOS Keychain
-3. **Provider Support**: Gmail, Outlook, iCloud, Yahoo Mail APIs
+3. **Provider Support**: Gmail, Outlook, Apple Mail, Yahoo Mail APIs
 
 #### AI Processing Pipeline
 1. **Email Ingestion**: Fetch emails from connected accounts
@@ -115,7 +115,7 @@ private let baseURL = "https://your-backend-api.com/v1"
 ```
 
 #### OAuth Client IDs
-Add your OAuth client IDs to the email provider configurations in `EmailProvider.swift`.
+Add your OAuth client IDs to the email provider configurations in `EmailAccount.swift`.
 
 #### Privacy Permissions
 The app includes pre-configured privacy descriptions in `Info.plist`:

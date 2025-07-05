@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 struct Email: Identifiable, Codable {
     let id: String
@@ -93,17 +94,17 @@ enum EmailCategory: String, Codable, CaseIterable {
     case deals = "Deals"
     case autoDeleted = "Auto-Deleted"
     
-    var color: String {
+    var color: UIColor {
         switch self {
-        case .primary: return "blue"
-        case .promotions: return "purple"
-        case .social: return "green"
-        case .newsletters: return "orange"
-        case .transactions: return "red"
-        case .updates: return "cyan"
-        case .spam: return "gray"
-        case .deals: return "pink"
-        case .autoDeleted: return "brown"
+        case .primary: return UIColor.systemBlue
+        case .promotions: return UIColor.systemPurple
+        case .social: return UIColor.systemGreen
+        case .newsletters: return UIColor.systemOrange
+        case .transactions: return UIColor.systemRed
+        case .updates: return UIColor.systemCyan
+        case .spam: return UIColor.systemGray
+        case .deals: return UIColor.systemPink
+        case .autoDeleted: return UIColor.systemBrown
         }
     }
     

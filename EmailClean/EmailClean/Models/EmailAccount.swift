@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 struct EmailAccount: Identifiable, Codable {
     let id: String
@@ -43,31 +44,56 @@ struct EmailAccount: Identifiable, Codable {
 enum EmailProvider: String, Codable, CaseIterable {
     case gmail = "Gmail"
     case outlook = "Outlook"
-    case icloud = "iCloud"
     case yahoo = "Yahoo"
+    case applemail = "Apple Mail"
     case other = "Other"
     
     var displayName: String {
-        return rawValue
+        return self.rawValue
     }
     
     var systemImage: String {
         switch self {
-        case .gmail: return "envelope.circle"
-        case .outlook: return "envelope.circle.fill"
-        case .icloud: return "icloud"
-        case .yahoo: return "envelope.open"
-        case .other: return "envelope.badge"
+        case .gmail:
+            return "envelope.circle.fill"
+        case .outlook:
+            return "envelope.arrow.triangle.branch.fill"
+        case .yahoo:
+            return "envelope.badge.fill"
+        case .applemail:
+            return "envelope.fill"
+        case .other:
+            return "envelope.open.fill"
         }
     }
     
-    var color: String {
+    var customIcon: String? {
         switch self {
-        case .gmail: return "red"
-        case .outlook: return "blue"
-        case .icloud: return "cyan"
-        case .yahoo: return "purple"
-        case .other: return "gray"
+        case .gmail:
+            return "gmail-icon"
+        case .outlook:
+            return "outlook-icon"
+        case .yahoo:
+            return "yahoo-icon"
+        case .applemail:
+            return "applemail-icon"
+        case .other:
+            return nil
+        }
+    }
+    
+    var color: UIColor {
+        switch self {
+        case .gmail:
+            return UIColor.systemRed
+        case .outlook:
+            return UIColor.systemBlue
+        case .yahoo:
+            return UIColor.systemPurple
+        case .applemail:
+            return UIColor.systemTeal
+        case .other:
+            return UIColor.systemGray
         }
     }
     
@@ -81,8 +107,8 @@ enum EmailProvider: String, Codable, CaseIterable {
             return ["https://graph.microsoft.com/Mail.ReadWrite",
                     "https://graph.microsoft.com/Mail.Send",
                     "https://graph.microsoft.com/User.Read"]
-        case .icloud:
-            return ["mail"] // iCloud Mail API scopes
+        case .applemail:
+            return ["mail"] // Apple Mail API scopes
         case .yahoo:
             return ["mail-r", "mail-w"] // Yahoo Mail API scopes
         case .other:
@@ -94,7 +120,7 @@ enum EmailProvider: String, Codable, CaseIterable {
         switch self {
         case .gmail: return "https://gmail.googleapis.com/gmail/v1"
         case .outlook: return "https://graph.microsoft.com/v1.0/me"
-        case .icloud: return "https://p03-mailws.icloud.com"
+        case .applemail: return "https://p03-mailws.icloud.com"
         case .yahoo: return "https://api.mail.yahoo.com/ws/v3"
         case .other: return ""
         }
@@ -216,9 +242,9 @@ extension EmailAccount {
             autoDeletedCount: 234
         ),
         EmailAccount(
-            name: "iCloud Mail",
+            name: "Apple Mail",
             email: "john.doe@icloud.com",
-            provider: .icloud,
+            provider: .applemail,
             isConnected: false,
             syncStatus: .idle,
             totalEmailCount: 0,

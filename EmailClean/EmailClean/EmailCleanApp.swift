@@ -8,6 +8,7 @@ struct EmailCleanApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(appStateManager)
+                .preferredColorScheme(.light) // Ensure light mode for consistent color appearance
         }
     }
 }
@@ -31,13 +32,17 @@ class AppStateManager: ObservableObject {
     
     func signIn() {
         // TODO: Implement OAuth flow
-        isAuthenticated = true
+        withAnimation(.easeInOut(duration: 0.5)) {
+            isAuthenticated = true
+        }
     }
     
     func signOut() {
         // TODO: Clear tokens from keychain
-        isAuthenticated = false
-        currentUser = nil
-        emailAccounts.removeAll()
+        withAnimation(.easeInOut(duration: 0.5)) {
+            isAuthenticated = false
+            currentUser = nil
+            emailAccounts.removeAll()
+        }
     }
 } 
