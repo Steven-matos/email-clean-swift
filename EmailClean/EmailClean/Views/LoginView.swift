@@ -165,7 +165,8 @@ struct ProviderButton: View {
                         .frame(width: 32, height: 32)
                     
                     Group {
-                        if let customIcon = provider.customIcon {
+                        if let customIcon = provider.customIcon,
+                           UIImage(named: customIcon) != nil {
                             Image(customIcon)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)

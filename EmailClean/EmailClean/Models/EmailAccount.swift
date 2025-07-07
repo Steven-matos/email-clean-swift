@@ -82,6 +82,11 @@ enum EmailProvider: String, Codable, CaseIterable {
         }
     }
     
+    // Enhanced icon with fallback handling
+    var iconImage: String {
+        return customIcon ?? systemImage
+    }
+    
     var color: UIColor {
         switch self {
         case .gmail:
