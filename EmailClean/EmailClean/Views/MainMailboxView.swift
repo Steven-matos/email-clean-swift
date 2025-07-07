@@ -10,7 +10,7 @@ struct MainMailboxView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // Background
+                // Clean flat background
                 Color.primaryBackground
                     .ignoresSafeArea()
                 
@@ -31,11 +31,11 @@ struct MainMailboxView: View {
                     } label: {
                         ZStack {
                             Circle()
-                                .fill(Color.lightBlue)
-                                .frame(width: 32, height: 32)
+                                .fill(Color.ultraLightGray)
+                                .frame(width: 36, height: 36)
                             
                             Image(systemName: "person.circle")
-                                .font(.title3)
+                                .font(.system(size: 18, weight: .medium))
                                 .foregroundColor(.primaryBlue)
                         }
                     }
@@ -48,11 +48,11 @@ struct MainMailboxView: View {
                         } label: {
                             ZStack {
                                 Circle()
-                                    .fill(Color.lightBlue)
-                                    .frame(width: 32, height: 32)
+                                    .fill(Color.ultraLightGray)
+                                    .frame(width: 36, height: 36)
                                 
                                 Image(systemName: "arrow.clockwise")
-                                    .font(.title3)
+                                    .font(.system(size: 16, weight: .medium))
                                     .foregroundColor(.primaryBlue)
                             }
                         }
@@ -64,10 +64,10 @@ struct MainMailboxView: View {
                             ZStack {
                                 Circle()
                                     .fill(Color.primaryBlue)
-                                    .frame(width: 32, height: 32)
+                                    .frame(width: 36, height: 36)
                                 
                                 Image(systemName: "square.and.pencil")
-                                    .font(.title3)
+                                    .font(.system(size: 16, weight: .medium))
                                     .foregroundColor(.pureWhite)
                             }
                         }
@@ -109,7 +109,13 @@ struct MainMailboxView: View {
         }
         .padding(.vertical, 16)
         .background(Color.cardBackground)
-        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+        .overlay(
+            Rectangle()
+                .fill(Color.lightGray)
+                .frame(height: 0.5)
+                .padding(.horizontal, 20),
+            alignment: .bottom
+        )
     }
     
     private var emailListSection: some View {
@@ -167,33 +173,34 @@ struct CategoryFilterButton: View {
         Button(action: action) {
             HStack(spacing: 8) {
                 Image(systemName: category.systemImage)
-                    .font(.caption)
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundColor(isSelected ? .pureWhite : .primaryBlue)
                 
                 Text(category.rawValue)
-                    .font(.caption)
-                    .fontWeight(.semibold)
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundColor(isSelected ? .pureWhite : .primaryText)
                 
                 if count > 0 {
                     Text("\(count)")
-                        .font(.caption2)
-                        .fontWeight(.bold)
+                        .font(.system(size: 12, weight: .bold))
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(isSelected ? Color.pureWhite : Color.primaryBlue)
                         .foregroundColor(isSelected ? Color.primaryBlue : Color.pureWhite)
-                        .cornerRadius(10)
+                        .cornerRadius(8)
                 }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
-            .background(isSelected ? Color.primaryBlue : Color.lightBlue)
+            .background(isSelected ? Color.primaryBlue : Color.ultraLightGray)
             .cornerRadius(20)
-            .shadow(color: Color.black.opacity(isSelected ? 0.15 : 0.05), radius: 4, x: 0, y: 2)
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(isSelected ? Color.primaryBlue : Color.lightGray, lineWidth: 0.5)
+            )
         }
         .buttonStyle(PlainButtonStyle())
-        .scaleEffect(isSelected ? 1.05 : 1.0)
+        .scaleEffect(isSelected ? 1.02 : 1.0)
         .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
 }
@@ -208,82 +215,53 @@ struct EmailRowView: View {
                 // Sender Avatar
                 ZStack {
                     Circle()
-                        .fill(Color(email.category.color).opacity(0.2))
+                        .fill(Color(email.category.color).opacity(0.1))
                         .frame(width: 48, height: 48)
-                        .overlay(
-                            Circle()
-                                .stroke(Color(email.category.color).opacity(0.3), lineWidth: 1)
-                        )
                     
                     Text(email.sender.name.prefix(1).uppercased())
-                        .font(.body)
-                        .fontWeight(.semibold)
+                        .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(Color(email.category.color))
                 }
                 
                 // Email Content
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text(email.sender.name)
-                            .font(.subheadline)
-                            .fontWeight(email.isRead ? .medium : .semibold)
+                            .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.primaryText)
+                            .lineLimit(1)
                         
                         Spacer()
                         
                         Text(email.timestamp.formatted(.relative(presentation: .named)))
-                            .font(.caption)
-                            .foregroundColor(.secondaryText)
+                            .font(.system(size: 12, weight: .regular))
+                            .foregroundColor(.tertiaryText)
                     }
                     
                     Text(email.subject)
-                        .font(.body)
-                        .fontWeight(email.isRead ? .regular : .medium)
-                        .foregroundColor(email.isRead ? .secondaryText : .primaryText)
-                        .lineLimit(1)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(.primaryText)
+                        .lineLimit(2)
                     
                     Text(email.snippet)
-                        .font(.caption)
+                        .font(.system(size: 14, weight: .regular))
                         .foregroundColor(.secondaryText)
                         .lineLimit(2)
                 }
                 
-                // Indicators
-                VStack(spacing: 6) {
-                    if !email.isRead {
-                        Circle()
-                            .fill(Color.primaryBlue)
-                            .frame(width: 10, height: 10)
-                    }
-                    
-                    if email.isImportant {
-                        Image(systemName: "exclamationmark.circle.fill")
-                            .font(.caption)
-                            .foregroundColor(.warning)
-                    }
-                    
-                    if email.hasAttachments {
-                        Image(systemName: "paperclip.circle.fill")
-                            .font(.caption)
-                            .foregroundColor(.mediumGrey)
-                    }
-                    
-                    if email.sender.isPotentialSpam {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.caption)
-                            .foregroundColor(.error)
-                    }
+                // Read/Unread indicator
+                if !email.isRead {
+                    Circle()
+                        .fill(Color.primaryBlue)
+                        .frame(width: 8, height: 8)
                 }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
-            .background(email.isRead ? Color.cardBackground : Color.lightBlue.opacity(0.3))
-            .cornerRadius(16)
-            .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+            .background(Color.cardBackground)
+            .flatCard()
         }
         .buttonStyle(PlainButtonStyle())
-        .padding(.horizontal, 16)
-        .padding(.vertical, 4)
     }
 }
 
@@ -291,12 +269,11 @@ struct LoadingView: View {
     var body: some View {
         VStack(spacing: 24) {
             ProgressView()
-                .scaleEffect(1.5)
+                .scaleEffect(1.2)
                 .tint(Color.primaryBlue)
             
             Text("Loading emails...")
-                .font(.body)
-                .fontWeight(.medium)
+                .font(.system(size: 16, weight: .medium))
                 .foregroundColor(.secondaryText)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -311,22 +288,21 @@ struct EmptyStateView: View {
         VStack(spacing: 32) {
             ZStack {
                 Circle()
-                    .fill(Color.lightBlue)
-                    .frame(width: 120, height: 120)
+                    .fill(Color.ultraLightGray)
+                    .frame(width: 80, height: 80)
                 
                 Image(systemName: category?.systemImage ?? "envelope")
-                    .font(.system(size: 48))
+                    .font(.system(size: 32, weight: .medium))
                     .foregroundColor(.primaryBlue)
             }
             
-            VStack(spacing: 12) {
+            VStack(spacing: 16) {
                 Text("No emails found")
-                    .font(.title2)
-                    .fontWeight(.bold)
+                    .font(.system(size: 20, weight: .bold))
                     .foregroundColor(.primaryText)
                 
                 Text("Your \(category?.rawValue.lowercased() ?? "inbox") is empty or all emails have been processed.")
-                    .font(.body)
+                    .font(.system(size: 16, weight: .regular))
                     .foregroundColor(.secondaryText)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
@@ -335,7 +311,7 @@ struct EmptyStateView: View {
             Button("Refresh") {
                 // TODO: Implement refresh
             }
-            .modernButton(.primary)
+            .flatButton(.primary)
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -343,42 +319,7 @@ struct EmptyStateView: View {
     }
 }
 
-// Placeholder views for future implementation
-struct AccountSettingsView: View {
-    var body: some View {
-        NavigationView {
-            ZStack {
-                Color.primaryBackground
-                    .ignoresSafeArea()
-                
-                VStack(spacing: 24) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.lightBlue)
-                            .frame(width: 80, height: 80)
-                        
-                        Image(systemName: "person.circle")
-                            .font(.system(size: 40))
-                            .foregroundColor(.primaryBlue)
-                    }
-                    
-                    VStack(spacing: 8) {
-                        Text("Account Settings")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.primaryText)
-                        
-                        Text("Coming soon...")
-                            .font(.body)
-                            .foregroundColor(.secondaryText)
-                    }
-                }
-            }
-            .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.inline)
-        }
-    }
-}
+
 
 struct EmailComposeView: View {
     var body: some View {
@@ -387,25 +328,24 @@ struct EmailComposeView: View {
                 Color.primaryBackground
                     .ignoresSafeArea()
                 
-                VStack(spacing: 24) {
+                VStack(spacing: 32) {
                     ZStack {
                         Circle()
-                            .fill(Color.lightBlue)
+                            .fill(Color.ultraLightGray)
                             .frame(width: 80, height: 80)
                         
                         Image(systemName: "square.and.pencil")
-                            .font(.system(size: 40))
+                            .font(.system(size: 32, weight: .medium))
                             .foregroundColor(.primaryBlue)
                     }
                     
-                    VStack(spacing: 8) {
+                    VStack(spacing: 16) {
                         Text("Compose Email")
-                            .font(.title2)
-                            .fontWeight(.bold)
+                            .font(.system(size: 20, weight: .bold))
                             .foregroundColor(.primaryText)
                         
                         Text("Coming soon...")
-                            .font(.body)
+                            .font(.system(size: 16, weight: .regular))
                             .foregroundColor(.secondaryText)
                     }
                 }
@@ -430,29 +370,26 @@ struct EmailDetailView: View {
                         // Email Header Card
                         VStack(alignment: .leading, spacing: 16) {
                             Text(email.subject)
-                                .font(.title2)
-                                .fontWeight(.bold)
+                                .font(.system(size: 20, weight: .bold))
                                 .foregroundColor(.primaryText)
                             
                             HStack(spacing: 12) {
                                 Circle()
-                                    .fill(Color(email.category.color).opacity(0.2))
+                                    .fill(Color(email.category.color).opacity(0.1))
                                     .frame(width: 40, height: 40)
                                     .overlay(
                                         Text(email.sender.name.prefix(1).uppercased())
-                                            .font(.caption)
-                                            .fontWeight(.semibold)
+                                            .font(.system(size: 14, weight: .semibold))
                                             .foregroundColor(Color(email.category.color))
                                     )
                                 
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("From: \(email.sender.name)")
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
+                                        .font(.system(size: 16, weight: .medium))
                                         .foregroundColor(.primaryText)
                                     
                                     Text(email.timestamp.formatted(.dateTime))
-                                        .font(.caption)
+                                        .font(.system(size: 12, weight: .regular))
                                         .foregroundColor(.secondaryText)
                                 }
                                 
@@ -460,17 +397,17 @@ struct EmailDetailView: View {
                             }
                         }
                         .padding(20)
-                        .modernCard()
+                        .flatCard()
                         
                         // Email Body Card
                         VStack(alignment: .leading, spacing: 16) {
                             Text(email.body)
-                                .font(.body)
+                                .font(.system(size: 16, weight: .regular))
                                 .lineSpacing(6)
                                 .foregroundColor(.primaryText)
                         }
                         .padding(20)
-                        .modernCard()
+                        .flatCard()
                         
                         Spacer()
                     }

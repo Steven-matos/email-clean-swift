@@ -37,8 +37,24 @@ class BackendAPIClient: BackendAPIClientProtocol {
     // MARK: - OAuth Flow
     func initiateOAuthFlow(provider: EmailProvider) async throws -> URL {
         if useMockMode {
-            // Return mock OAuth URL for development
-            return URL(string: "https://mock-oauth.com/auth?provider=\(provider.rawValue)")!
+            // Return realistic OAuth URLs for development
+            let clientId = "demo_client_id_\(provider.rawValue.lowercased())"
+            let redirectUri = "emailclean://oauth/callback"
+            let scope = provider.oauthScopes.joined(separator: " ")
+            let state = UUID().uuidString
+            
+            switch provider {
+            case .gmail:
+                return URL(string: "https://accounts.google.com/o/oauth2/v2/auth?client_id=\(clientId)&redirect_uri=\(redirectUri)&scope=\(scope)&response_type=code&state=\(state)")!
+            case .outlook:
+                return URL(string: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=\(clientId)&redirect_uri=\(redirectUri)&scope=\(scope)&response_type=code&state=\(state)")!
+            case .yahoo:
+                return URL(string: "https://api.login.yahoo.com/oauth2/request_auth?client_id=\(clientId)&redirect_uri=\(redirectUri)&scope=\(scope)&response_type=code&state=\(state)")!
+            case .applemail:
+                return URL(string: "https://idmsa.apple.com/appleauth/auth/oauth/authorize?client_id=\(clientId)&redirect_uri=\(redirectUri)&scope=\(scope)&response_type=code&state=\(state)")!
+            case .other:
+                return URL(string: "https://mock-oauth.com/auth?provider=\(provider.rawValue)")!
+            }
         }
         
         let endpoint = "\(baseURL)/auth/oauth/initiate"
@@ -65,9 +81,10 @@ class BackendAPIClient: BackendAPIClientProtocol {
     func exchangeOAuthCode(provider: EmailProvider, authCode: String) async throws -> OAuthTokenResponse {
         if useMockMode {
             // Return mock tokens for development
+            // In a real app, this would validate the auth code and exchange it for tokens
             return OAuthTokenResponse(
-                accessToken: "demo_access_token_\(provider.rawValue)",
-                refreshToken: "demo_refresh_token_\(provider.rawValue)",
+                accessToken: "demo_access_token_\(provider.rawValue)_\(UUID().uuidString.prefix(8))",
+                refreshToken: "demo_refresh_token_\(provider.rawValue)_\(UUID().uuidString.prefix(8))",
                 expiresIn: 3600,
                 tokenType: "Bearer",
                 scope: provider.oauthScopes.joined(separator: " ")

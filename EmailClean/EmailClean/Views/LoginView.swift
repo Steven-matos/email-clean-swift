@@ -7,30 +7,35 @@ struct LoginView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // Background gradient
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.primaryBackground, Color.lightBlue]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+                // Clean flat background
+                Color.primaryBackground
+                    .ignoresSafeArea()
                 
-                VStack(spacing: 32) {
-                    // Header
-                    headerSection
-                    
-                    // Email Provider Selection
-                    emailProviderSection
-                    
-                    // Terms and Privacy
-                    termsSection
-                    
-                    Spacer()
+                ScrollView {
+                    VStack(spacing: 32) {
+                        // Header
+                        headerSection
+                        
+                        // Email Provider Selection
+                        emailProviderSection
+                        
+                        // Test Mode Section (for development)
+                        #if DEBUG
+                        testModeSection
+                        #endif
+                        
+                        // Terms and Privacy
+                        termsSection
+                        
+                        // Bottom spacing
+                        Spacer(minLength: 40)
+                    }
+                    .padding(.horizontal, 32)
+                    .padding(.top, 60)
+                    .padding(.bottom, 20)
                 }
-                .padding(.horizontal, 24)
             }
-            .navigationTitle("Welcome")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarHidden(true)
             .overlay(
                 loadingOverlay
             )
@@ -44,43 +49,40 @@ struct LoginView: View {
     
     private var headerSection: some View {
         VStack(spacing: 24) {
-            // App Logo/Icon
+            // App Logo/Icon with flat design
             ZStack {
                 Circle()
-                    .fill(Color.primaryBlue.opacity(0.15))
-                    .frame(width: 120, height: 120)
+                    .fill(Color.primaryBlue)
+                    .frame(width: 80, height: 80)
                 
                 Image(systemName: "envelope.badge.shield.half.filled")
-                    .font(.system(size: 56))
-                    .foregroundColor(.primaryBlue)
+                    .font(.system(size: 36, weight: .medium))
+                    .foregroundColor(.pureWhite)
             }
             
             VStack(spacing: 12) {
                 Text("EmailClean")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+                    .font(.system(size: 32, weight: .bold))
                     .foregroundColor(.primaryText)
                 
                 Text("AI-Powered Email Management")
-                    .font(.title3)
+                    .font(.system(size: 18, weight: .medium))
                     .foregroundColor(.secondaryText)
                     .multilineTextAlignment(.center)
             }
             
             Text("Connect your email accounts to get started with intelligent auto-organization and spam filtering.")
-                .font(.body)
-                .foregroundColor(.secondaryText)
+                .font(.system(size: 16, weight: .regular))
+                .foregroundColor(.tertiaryText)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 16)
+                .lineLimit(3)
         }
-        .padding(.top, 32)
     }
     
     private var emailProviderSection: some View {
         VStack(spacing: 20) {
             Text("Connect Email Account")
-                .font(.headline)
-                .fontWeight(.semibold)
+                .font(.system(size: 20, weight: .semibold))
                 .foregroundColor(.primaryText)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
@@ -95,55 +97,102 @@ struct LoginView: View {
                 }
             }
         }
-        .padding(.horizontal, 8)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 24)
+        .background(Color.cardBackground)
+        .flatCard()
     }
     
     private var termsSection: some View {
         VStack(spacing: 16) {
             Text("By connecting an account, you agree to our Terms of Service and Privacy Policy. Your email passwords are never stored.")
-                .font(.caption)
-                .foregroundColor(.secondaryText)
+                .font(.system(size: 14, weight: .regular))
+                .foregroundColor(.tertiaryText)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 16)
+                .lineLimit(4)
             
-            HStack(spacing: 24) {
+            HStack(spacing: 32) {
                 Button("Terms of Service") {
                     // TODO: Show terms of service
                 }
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundColor(.accentText)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.primaryBlue)
                 
                 Button("Privacy Policy") {
                     // TODO: Show privacy policy
                 }
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundColor(.accentText)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.primaryBlue)
             }
         }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 20)
+        .background(Color.secondaryBackground)
+        .flatCard()
     }
+    
+    #if DEBUG
+    private var testModeSection: some View {
+        VStack(spacing: 16) {
+            Text("Test Mode")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(.primaryText)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            Text("Quick test buttons for development")
+                .font(.system(size: 14, weight: .regular))
+                .foregroundColor(.tertiaryText)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            HStack(spacing: 12) {
+                ForEach(EmailProvider.allCases.prefix(2), id: \.self) { provider in
+                    Button {
+                        viewModel.connectEmailAccount(provider: provider)
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: provider.systemImage)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.primaryBlue)
+                            
+                            Text("Test \(provider.displayName)")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.primaryBlue)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.primaryBlue.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 24)
+        .background(Color.secondaryBackground)
+        .flatCard()
+    }
+    #endif
     
     private var loadingOverlay: some View {
         Group {
             if viewModel.isLoading {
-                Color.black.opacity(0.4)
+                Color.pureBlack.opacity(0.4)
                     .ignoresSafeArea()
                     .overlay(
                         VStack(spacing: 24) {
                             ProgressView()
-                                .scaleEffect(1.5)
+                                .scaleEffect(1.2)
                                 .tint(Color.primaryBlue)
                             
                             Text("Connecting to \(viewModel.selectedProvider?.displayName ?? "Email Provider")...")
-                                .font(.headline)
-                                .fontWeight(.medium)
+                                .font(.system(size: 16, weight: .medium))
                                 .foregroundColor(.primaryText)
+                                .multilineTextAlignment(.center)
                         }
                         .padding(40)
                         .background(Color.cardBackground)
-                        .cornerRadius(20)
-                        .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+                        .flatCard()
                     )
             }
         }
@@ -158,11 +207,11 @@ struct ProviderButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 16) {
-                // Provider Icon
+                // Provider Icon with flat design
                 ZStack {
                     Circle()
-                        .fill(Color(provider.color).opacity(0.15))
-                        .frame(width: 32, height: 32)
+                        .fill(Color(provider.color).opacity(0.1))
+                        .frame(width: 40, height: 40)
                     
                     Group {
                         if let customIcon = provider.customIcon,
@@ -170,11 +219,11 @@ struct ProviderButton: View {
                             Image(customIcon)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 18, height: 18)
+                                .frame(width: 20, height: 20)
                                 .foregroundColor(Color(provider.color))
                         } else {
                             Image(systemName: provider.systemImage)
-                                .font(.system(size: 18))
+                                .font(.system(size: 20, weight: .medium))
                                 .foregroundColor(Color(provider.color))
                         }
                     }
@@ -182,8 +231,7 @@ struct ProviderButton: View {
                 
                 // Provider Name
                 Text(provider.displayName)
-                    .font(.body)
-                    .fontWeight(.semibold)
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.primaryText)
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -198,15 +246,13 @@ struct ProviderButton: View {
                 } else {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.secondaryText)
+                        .foregroundColor(.mediumGray)
                 }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.cardBackground)
-            .cornerRadius(12)
-            .shadow(color: Color.black.opacity(0.06), radius: 6, x: 0, y: 3)
+            .background(Color.pureWhite)
+            .flatCard()
         }
         .buttonStyle(PlainButtonStyle())
         .disabled(isLoading)
