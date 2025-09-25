@@ -2,8 +2,8 @@ import Foundation
 
 // MARK: - Protocol Definition
 protocol BackendAPIClientProtocol {
-    func initiateOAuthFlow(provider: EmailProvider) async throws -> URL
-    func exchangeOAuthCode(provider: EmailProvider, authCode: String) async throws -> OAuthTokenResponse
+    func initiateOAuthFlow(provider: EmailProvider, codeChallenge: String?, codeChallengeMethod: String?) async throws -> URL
+    func exchangeOAuthCode(provider: EmailProvider, authCode: String, codeVerifier: String?) async throws -> OAuthTokenResponse
     func registerEmailAccount(provider: EmailProvider, accessToken: String) async throws -> EmailAccount
     func fetchEmails(accountId: String?, category: EmailCategory?) async throws -> [Email]
     func markEmailAsRead(emailId: String) async throws
@@ -15,6 +15,7 @@ protocol BackendAPIClientProtocol {
     func blacklistSender(senderEmail: String) async throws
     func updateUserPreferences(preferences: EmailUserPreferences) async throws
     func getUserStatistics() async throws -> EmailUserStatistics
+    var isMockModeEnabled: Bool { get }
 }
 
 // MARK: - Implementation
@@ -24,6 +25,10 @@ class BackendAPIClient: BackendAPIClientProtocol {
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
     private let useMockMode: Bool
+
+    var isMockModeEnabled: Bool {
+        useMockMode
+    }
     
     init(useMockMode: Bool = true) { // Default to mock mode for development
         self.useMockMode = useMockMode
@@ -35,25 +40,66 @@ class BackendAPIClient: BackendAPIClientProtocol {
     }
     
     // MARK: - OAuth Flow
-    func initiateOAuthFlow(provider: EmailProvider) async throws -> URL {
+    func initiateOAuthFlow(provider: EmailProvider, codeChallenge: String?, codeChallengeMethod: String?) async throws -> URL {
+        print("🧪 BackendAPIClient.useMockMode: \(useMockMode)")
+        print("🪪 BackendAPIClient initiating OAuth flow for provider: \(provider.rawValue)")
         if useMockMode {
-            // Return realistic OAuth URLs for development
-            let clientId = "demo_client_id_\(provider.rawValue.lowercased())"
-            let redirectUri = "emailclean://oauth/callback"
-            let scope = provider.oauthScopes.joined(separator: " ")
+            // Return realistic OAuth URLs for development with proper encoding
             let state = UUID().uuidString
+            let scope = provider.oauthScopes.joined(separator: " ")
             
             switch provider {
             case .gmail:
-                return URL(string: "https://accounts.google.com/o/oauth2/v2/auth?client_id=\(clientId)&redirect_uri=\(redirectUri)&scope=\(scope)&response_type=code&state=\(state)")!
-            case .outlook:
-                return URL(string: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=\(clientId)&redirect_uri=\(redirectUri)&scope=\(scope)&response_type=code&state=\(state)")!
+                let clientId = "demo_client_id_gmail"
+                print("🔧 Building Gmail OAuth URL")
+                guard var components = URLComponents(string: "https://accounts.google.com/o/oauth2/v2/auth") else {
+                    throw APIError.invalidURL
+                }
+                components.queryItems = [
+                    URLQueryItem(name: "client_id", value: clientId),
+                    URLQueryItem(name: "redirect_uri", value: "emailclean://oauth/callback"),
+                    URLQueryItem(name: "response_type", value: "code"),
+                    URLQueryItem(name: "scope", value: scope),
+                    URLQueryItem(name: "state", value: state)
+                ]
+                components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
+                guard let url = components.url else {
+                    throw APIError.invalidURL
+                }
+                print("🔗 BackendAPIClient Gmail OAuth URL: \(url.absoluteString)")
+                return url
             case .yahoo:
-                return URL(string: "https://api.login.yahoo.com/oauth2/request_auth?client_id=\(clientId)&redirect_uri=\(redirectUri)&scope=\(scope)&response_type=code&state=\(state)")!
-            case .applemail:
-                return URL(string: "https://idmsa.apple.com/appleauth/auth/oauth/authorize?client_id=\(clientId)&redirect_uri=\(redirectUri)&scope=\(scope)&response_type=code&state=\(state)")!
-            case .other:
-                return URL(string: "https://mock-oauth.com/auth?provider=\(provider.rawValue)")!
+                let clientId = "dj0yJmk9dGhNU1NJTzJIbE01JmQ9WVdrOU1rVXpSVVpEVTNRbWNHbzlNQT09JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PWMx"
+                let nonce = UUID().uuidString
+                
+                print("🔧 BackendAPIClient building Yahoo OAuth URL with client ID: \(clientId)")
+                let redirectUri = "emailclean://oauth/yahoo"
+                print("🔧 BackendAPIClient using Yahoo redirect URI: \(redirectUri)")
+                
+                guard var components = URLComponents(string: "https://api.login.yahoo.com/oauth2/request_auth") else {
+                    throw APIError.invalidURL
+                }
+                var queryItems = [
+                    URLQueryItem(name: "client_id", value: clientId),
+                    URLQueryItem(name: "redirect_uri", value: redirectUri),
+                    URLQueryItem(name: "response_type", value: "code"),
+                    URLQueryItem(name: "scope", value: scope),
+                    URLQueryItem(name: "state", value: state),
+                    URLQueryItem(name: "nonce", value: nonce)
+                ]
+                if let codeChallenge {
+                    queryItems.append(URLQueryItem(name: "code_challenge", value: codeChallenge))
+                }
+                if let codeChallengeMethod {
+                    queryItems.append(URLQueryItem(name: "code_challenge_method", value: codeChallengeMethod))
+                }
+                components.queryItems = queryItems
+                components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
+                guard let url = components.url else {
+                    throw APIError.invalidURL
+                }
+                print("🔗 BackendAPIClient Yahoo OAuth URL: \(url.absoluteString)")
+                return url
             }
         }
         
@@ -62,7 +108,11 @@ class BackendAPIClient: BackendAPIClientProtocol {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        let body = OAuthInitiateRequest(provider: provider.rawValue)
+        let body = OAuthInitiateRequest(
+            provider: provider.rawValue,
+            codeChallenge: codeChallenge,
+            codeChallengeMethod: codeChallengeMethod
+        )
         request.httpBody = try encoder.encode(body)
         
         do {
@@ -78,7 +128,7 @@ class BackendAPIClient: BackendAPIClientProtocol {
         }
     }
     
-    func exchangeOAuthCode(provider: EmailProvider, authCode: String) async throws -> OAuthTokenResponse {
+    func exchangeOAuthCode(provider: EmailProvider, authCode: String, codeVerifier: String?) async throws -> OAuthTokenResponse {
         if useMockMode {
             // Return mock tokens for development
             // In a real app, this would validate the auth code and exchange it for tokens
@@ -98,7 +148,8 @@ class BackendAPIClient: BackendAPIClientProtocol {
         
         let body = OAuthExchangeRequest(
             provider: provider.rawValue,
-            authorizationCode: authCode
+            authorizationCode: authCode,
+            codeVerifier: codeVerifier
         )
         request.httpBody = try encoder.encode(body)
         
@@ -444,6 +495,8 @@ class BackendAPIClient: BackendAPIClientProtocol {
 // MARK: - Request/Response Models
 struct OAuthInitiateRequest: Codable {
     let provider: String
+    let codeChallenge: String?
+    let codeChallengeMethod: String?
 }
 
 struct OAuthInitiateResponse: Codable {
@@ -459,10 +512,12 @@ struct OAuthInitiateResponse: Codable {
 struct OAuthExchangeRequest: Codable {
     let provider: String
     let authorizationCode: String
+    let codeVerifier: String?
     
     enum CodingKeys: String, CodingKey {
         case provider
         case authorizationCode = "authorization_code"
+        case codeVerifier = "code_verifier"
     }
 }
 

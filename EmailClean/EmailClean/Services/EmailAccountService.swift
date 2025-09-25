@@ -83,14 +83,8 @@ class EmailAccountService: EmailAccountServiceProtocol {
         switch provider {
         case .gmail:
             return try await refreshGmailTokens(refreshToken: refreshToken)
-        case .outlook:
-            return try await refreshOutlookTokens(refreshToken: refreshToken)
-        case .applemail:
-            return try await refreshAppleMailTokens(refreshToken: refreshToken)
         case .yahoo:
             return try await refreshYahooTokens(refreshToken: refreshToken)
-        case .other:
-            throw EmailAccountError.unsupportedProvider
         }
     }
     
@@ -106,27 +100,6 @@ class EmailAccountService: EmailAccountServiceProtocol {
         )
     }
     
-    private func refreshOutlookTokens(refreshToken: String) async throws -> OAuthTokenResponse {
-        // Outlook token refresh implementation
-        return OAuthTokenResponse(
-            accessToken: "refreshed_outlook_token",
-            refreshToken: refreshToken,
-            expiresIn: 3600,
-            tokenType: "Bearer",
-            scope: "https://graph.microsoft.com/Mail.ReadWrite"
-        )
-    }
-    
-    private func refreshAppleMailTokens(refreshToken: String) async throws -> OAuthTokenResponse {
-        // Apple Mail token refresh implementation
-        return OAuthTokenResponse(
-            accessToken: "refreshed_applemail_token",
-            refreshToken: refreshToken,
-            expiresIn: 3600,
-            tokenType: "Bearer",
-            scope: "mail"
-        )
-    }
     
     private func refreshYahooTokens(refreshToken: String) async throws -> OAuthTokenResponse {
         // Yahoo token refresh implementation
@@ -197,6 +170,102 @@ class KeychainManager {
         
         if status != errSecSuccess && status != errSecItemNotFound {
             throw KeychainError.unableToDelete
+        }
+    }
+    
+    /**
+     * Saves data with custom service and account identifiers
+     * Used for storing multiple Yahoo accounts
+     */
+    func save(data: Data, service: String, account: String) async throws {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+        ]
+        
+        // Delete existing item first
+        SecItemDelete(query as CFDictionary)
+        
+        // Add new item
+        let status = SecItemAdd(query as CFDictionary, nil)
+        
+        guard status == errSecSuccess else {
+            throw KeychainError.unableToStore
+        }
+    }
+    
+    /**
+     * Loads data with custom service and account identifiers
+     */
+    func load(service: String, account: String) async throws -> Data? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        
+        switch status {
+        case errSecSuccess:
+            return result as? Data
+        case errSecItemNotFound:
+            return nil
+        default:
+            throw KeychainError.unableToLoad
+        }
+    }
+    
+    /**
+     * Deletes data with custom service and account identifiers
+     */
+    func delete(service: String, account: String) async throws {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account
+        ]
+        
+        let status = SecItemDelete(query as CFDictionary)
+        
+        guard status == errSecSuccess || status == errSecItemNotFound else {
+            throw KeychainError.unableToDelete
+        }
+    }
+    
+    /**
+     * Lists all accounts for a specific service
+     */
+    func listAccounts(for service: String) async throws -> [String] {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecReturnAttributes as String: true,
+            kSecMatchLimit as String: kSecMatchLimitAll
+        ]
+        
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        
+        switch status {
+        case errSecSuccess:
+            guard let items = result as? [[String: Any]] else {
+                return []
+            }
+            
+            return items.compactMap { item in
+                item[kSecAttrAccount as String] as? String
+            }
+        case errSecItemNotFound:
+            return []
+        default:
+            throw KeychainError.unableToLoad
         }
     }
 }

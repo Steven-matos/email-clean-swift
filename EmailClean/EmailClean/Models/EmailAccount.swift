@@ -43,10 +43,12 @@ struct EmailAccount: Identifiable, Codable {
 
 enum EmailProvider: String, Codable, CaseIterable {
     case gmail = "Gmail"
-    case outlook = "Outlook"
     case yahoo = "Yahoo"
-    case applemail = "Apple Mail"
-    case other = "Other"
+    
+    // Future providers can be added here when needed
+    // case outlook = "Outlook"
+    // case applemail = "Apple Mail"
+    // case other = "Other"
     
     var displayName: String {
         return self.rawValue
@@ -56,14 +58,8 @@ enum EmailProvider: String, Codable, CaseIterable {
         switch self {
         case .gmail:
             return "envelope.circle.fill"
-        case .outlook:
-            return "envelope.arrow.triangle.branch.fill"
         case .yahoo:
             return "envelope.badge.fill"
-        case .applemail:
-            return "envelope.fill"
-        case .other:
-            return "envelope.open.fill"
         }
     }
     
@@ -71,14 +67,8 @@ enum EmailProvider: String, Codable, CaseIterable {
         switch self {
         case .gmail:
             return "gmail-icon"
-        case .outlook:
-            return "outlook-icon"
         case .yahoo:
             return "yahoo-icon"
-        case .applemail:
-            return "applemail-icon"
-        case .other:
-            return nil
         }
     }
     
@@ -91,14 +81,8 @@ enum EmailProvider: String, Codable, CaseIterable {
         switch self {
         case .gmail:
             return UIColor.systemRed
-        case .outlook:
-            return UIColor.systemBlue
         case .yahoo:
             return UIColor.systemPurple
-        case .applemail:
-            return UIColor.systemTeal
-        case .other:
-            return UIColor.systemGray
         }
     }
     
@@ -108,26 +92,37 @@ enum EmailProvider: String, Codable, CaseIterable {
             return ["https://www.googleapis.com/auth/gmail.readonly",
                     "https://www.googleapis.com/auth/gmail.send",
                     "https://www.googleapis.com/auth/gmail.modify"]
-        case .outlook:
-            return ["https://graph.microsoft.com/Mail.ReadWrite",
-                    "https://graph.microsoft.com/Mail.Send",
-                    "https://graph.microsoft.com/User.Read"]
-        case .applemail:
-            return ["mail"] // Apple Mail API scopes
         case .yahoo:
-            return ["mail-r", "mail-w"] // Yahoo Mail API scopes
-        case .other:
-            return []
+            return ["openid", "email", "profile"] // Use Yahoo's standard scopes
         }
     }
     
     var baseURL: String {
         switch self {
-        case .gmail: return "https://gmail.googleapis.com/gmail/v1"
-        case .outlook: return "https://graph.microsoft.com/v1.0/me"
-        case .applemail: return "https://p03-mailws.icloud.com"
-        case .yahoo: return "https://api.mail.yahoo.com/ws/v3"
-        case .other: return ""
+        case .gmail: 
+            return "https://gmail.googleapis.com/gmail/v1"
+        case .yahoo: 
+            return "https://api.mail.yahoo.com/ws/v3"
+        }
+    }
+    
+    /// Gmail-specific category mapping
+    var gmailCategories: [String] {
+        switch self {
+        case .gmail:
+            return ["primary", "promotions", "social", "updates", "forums"]
+        case .yahoo:
+            return [] // Yahoo doesn't have built-in categories like Gmail
+        }
+    }
+    
+    /// Yahoo-specific folder structure
+    var yahooFolders: [String] {
+        switch self {
+        case .yahoo:
+            return ["Inbox", "Sent", "Draft", "Trash", "Spam"]
+        case .gmail:
+            return [] // Gmail uses labels instead of folders
         }
     }
 }
@@ -236,25 +231,15 @@ extension EmailAccount {
             autoDeletedCount: 156
         ),
         EmailAccount(
-            name: "Work Outlook",
-            email: "j.doe@company.com",
-            provider: .outlook,
+            name: "Yahoo Mail",
+            email: "john.doe@yahoo.com",
+            provider: .yahoo,
             isConnected: true,
             lastSyncDate: Date().addingTimeInterval(-180),
             syncStatus: .completed,
             totalEmailCount: 892,
             unreadEmailCount: 7,
             autoDeletedCount: 234
-        ),
-        EmailAccount(
-            name: "Apple Mail",
-            email: "john.doe@icloud.com",
-            provider: .applemail,
-            isConnected: false,
-            syncStatus: .idle,
-            totalEmailCount: 0,
-            unreadEmailCount: 0,
-            autoDeletedCount: 0
         )
     ]
-} 
+}

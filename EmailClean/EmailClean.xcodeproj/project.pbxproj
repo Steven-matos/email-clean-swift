@@ -29,9 +29,22 @@
 		29B72AA62E17AA7E000092D6 /* EmailCleanUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EmailCleanUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		293A6DAF2E838A7F00B33495 /* Exceptions for "EmailClean" folder in "EmailClean" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 29B72A892E17AA7D000092D6 /* EmailClean */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		29B72A8C2E17AA7D000092D6 /* EmailClean */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				293A6DAF2E838A7F00B33495 /* Exceptions for "EmailClean" folder in "EmailClean" target */,
+			);
 			path = EmailClean;
 			sourceTree = "<group>";
 		};
@@ -397,14 +410,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleURLTypes = (
-					{
-						CFBundleURLName = "com.emailclean.EmailClean";
-						CFBundleURLSchemes = (
-							"emailclean",
-						);
-					},
-				);
+				INFOPLIST_FILE = EmailClean/Info.plist;
+				INFOPLIST_KEY_CFBundleURLTypes = "{\n    CFBundleURLName = \"com.emailclean.EmailClean\";\n    CFBundleURLSchemes =     (\n        emailclean\n    );\n}";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -432,14 +439,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleURLTypes = (
-					{
-						CFBundleURLName = "com.emailclean.EmailClean";
-						CFBundleURLSchemes = (
-							"emailclean",
-						);
-					},
-				);
+				INFOPLIST_FILE = EmailClean/Info.plist;
+				INFOPLIST_KEY_CFBundleURLTypes = "{\n    CFBundleURLName = \"com.emailclean.EmailClean\";\n    CFBundleURLSchemes =     (\n        emailclean\n    );\n}";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
