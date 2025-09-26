@@ -102,10 +102,20 @@ class YahooOAuthService: NSObject, ObservableObject {
             try await storeAccount(account)
             
             await MainActor.run {
-                connectedAccounts.append(account)
+                // Check if account already exists (prevent duplicates)
+                if !connectedAccounts.contains(where: { $0.email == account.email }) {
+                    connectedAccounts.append(account)
+                    print("🎉 [YahooOAuth] New account added: \(account.email)")
+                } else {
+                    print("ℹ️ [YahooOAuth] Account already exists, updating: \(account.email)")
+                    // Update existing account
+                    if let index = connectedAccounts.firstIndex(where: { $0.email == account.email }) {
+                        connectedAccounts[index] = account
+                    }
+                }
                 isAuthenticating = false
             }
-            print("🎉 [YahooOAuth] Account successfully added and UI updated.")
+            print("🎉 [YahooOAuth] Account successfully saved and UI updated.")
         } catch {
             print("❌ [YahooOAuth] Error during authentication: \(error)")
             print("❌ [YahooOAuth] Error details: \(error.localizedDescription)")
@@ -116,6 +126,26 @@ class YahooOAuthService: NSObject, ObservableObject {
             await MainActor.run {
                 authenticationError = error.localizedDescription
                 isAuthenticating = false
+            }
+        }
+    }
+    
+    /**
+     * Refreshes tokens for all connected accounts that are expired or close to expiring
+     */
+    func refreshExpiredTokens() async {
+        print("🔄 [YahooOAuth] Checking for expired tokens...")
+        
+        for account in connectedAccounts {
+            // Refresh tokens that are expired or will expire in the next 5 minutes
+            if account.isExpired || account.expiresAt.timeIntervalSinceNow < 300 {
+                print("🔄 [YahooOAuth] Refreshing token for expired account: \(account.email)")
+                do {
+                    _ = try await refreshToken(for: account)
+                    print("✅ [YahooOAuth] Successfully refreshed token for: \(account.email)")
+                } catch {
+                    print("❌ [YahooOAuth] Failed to refresh token for \(account.email): \(error)")
+                }
             }
         }
     }
@@ -164,13 +194,60 @@ class YahooOAuthService: NSObject, ObservableObject {
     }
     
     /**
+     * Checks if a Yahoo account with the given email is already connected
+     */
+    func isAccountConnected(email: String) -> Bool {
+        return connectedAccounts.contains { $0.email == email }
+    }
+    
+    /**
+     * Gets a connected Yahoo account by email
+     */
+    func getAccount(email: String) -> YahooAccount? {
+        return connectedAccounts.first { $0.email == email }
+    }
+    
+    /**
      * Loads all stored Yahoo accounts on app launch
      */
     func loadStoredAccounts() async {
-        // Implementation would load from Keychain
-        // For now, we'll start with empty array
-        await MainActor.run {
-            connectedAccounts = []
+        print("📱 [YahooOAuth] Loading stored Yahoo accounts from Keychain...")
+        
+        do {
+            // Get list of all Yahoo accounts stored in Keychain
+            let accountEmails = try await keychain.listAccounts(for: "yahoo_oauth")
+            print("📱 [YahooOAuth] Found \(accountEmails.count) stored Yahoo accounts: \(accountEmails)")
+            
+            var loadedAccounts: [YahooAccount] = []
+            
+            // Load each account from Keychain
+            for email in accountEmails {
+                do {
+                    if let accountData = try await keychain.load(service: "yahoo_oauth", account: email) {
+                        let account = try JSONDecoder().decode(YahooAccount.self, from: accountData)
+                        loadedAccounts.append(account)
+                        print("✅ [YahooOAuth] Loaded account: \(account.email)")
+                    }
+                } catch {
+                    print("❌ [YahooOAuth] Failed to load account for \(email): \(error)")
+                }
+            }
+            
+            // Update UI on main thread
+            let finalAccounts = loadedAccounts
+            await MainActor.run {
+                // Replace all accounts with loaded ones (this ensures no duplicates from Keychain)
+                connectedAccounts = finalAccounts
+                print("📱 [YahooOAuth] Updated connectedAccounts with \(finalAccounts.count) accounts from Keychain")
+            }
+            
+            print("📱 [YahooOAuth] Successfully loaded \(loadedAccounts.count) Yahoo accounts")
+            
+        } catch {
+            print("❌ [YahooOAuth] Failed to load stored accounts: \(error)")
+            await MainActor.run {
+                connectedAccounts = []
+            }
         }
     }
     

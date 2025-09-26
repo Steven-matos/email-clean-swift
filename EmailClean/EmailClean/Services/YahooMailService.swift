@@ -16,9 +16,10 @@ class YahooMailService: ObservableObject {
      * @param account: Yahoo account to fetch emails from
      * @param folder: Folder name (e.g., "Inbox", "Sent")
      * @param limit: Maximum number of emails to fetch
+     * @param offset: Offset for pagination (default: 0)
      * @return: Array of Yahoo emails
      */
-    func fetchEmails(from account: YahooAccount, folder: String = "Inbox", limit: Int = 50) async throws -> [YahooEmail] {
+    func fetchEmails(from account: YahooAccount, folder: String = "Inbox", limit: Int = 50, offset: Int = 0) async throws -> [YahooEmail] {
         // Ensure we have a valid access token
         let validAccount = try await ensureValidToken(for: account)
         
@@ -36,6 +37,7 @@ class YahooMailService: ObservableObject {
         var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
         components?.queryItems = [
             URLQueryItem(name: "limit", value: String(limit)),
+            URLQueryItem(name: "offset", value: String(offset)),
             URLQueryItem(name: "sort", value: "date"),
             URLQueryItem(name: "order", value: "desc")
         ]
@@ -61,6 +63,74 @@ class YahooMailService: ObservableObject {
         default:
             throw YahooMailError.serverError(httpResponse.statusCode)
         }
+    }
+    
+    /**
+     * Fetches emails progressively in batches to handle large volumes
+     * @param account: Yahoo account to fetch emails from
+     * @param folder: Folder name (e.g., "Inbox", "Sent")
+     * @param batchSize: Number of emails to fetch per batch (default: 25)
+     * @param maxBatches: Maximum number of batches to fetch (default: 10)
+     * @param onProgress: Callback called after each batch is fetched
+     * @return: Array of all fetched Yahoo emails
+     */
+    func fetchEmailsProgressively(
+        from account: YahooAccount,
+        folder: String = "Inbox",
+        batchSize: Int = 25,
+        maxBatches: Int = 10,
+        onProgress: @escaping (Int, [YahooEmail]) -> Void = { _, _ in }
+    ) async throws -> [YahooEmail] {
+        print("📧 [YahooMailService] Starting progressive email fetch for \(account.email)")
+        print("📧 [YahooMailService] Batch size: \(batchSize), Max batches: \(maxBatches)")
+        
+        var allEmails: [YahooEmail] = []
+        var currentOffset = 0
+        var batchCount = 0
+        
+        while batchCount < maxBatches {
+            print("📧 [YahooMailService] Fetching batch \(batchCount + 1) (offset: \(currentOffset))")
+            
+            do {
+                let batchEmails = try await fetchEmails(
+                    from: account,
+                    folder: folder,
+                    limit: batchSize,
+                    offset: currentOffset
+                )
+                
+                print("📧 [YahooMailService] Batch \(batchCount + 1) fetched \(batchEmails.count) emails")
+                
+                // If we got fewer emails than requested, we've reached the end
+                if batchEmails.count < batchSize {
+                    allEmails.append(contentsOf: batchEmails)
+                    onProgress(batchCount + 1, allEmails)
+                    print("📧 [YahooMailService] Reached end of emails (got \(batchEmails.count) < \(batchSize))")
+                    break
+                }
+                
+                allEmails.append(contentsOf: batchEmails)
+                onProgress(batchCount + 1, allEmails)
+                
+                currentOffset += batchSize
+                batchCount += 1
+                
+                // Small delay between batches to be respectful to the API
+                try await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+                
+            } catch {
+                print("❌ [YahooMailService] Error fetching batch \(batchCount + 1): \(error)")
+                // Continue with next batch or break if it's a critical error
+                if case YahooMailError.unauthorized = error {
+                    throw error // Stop on auth errors
+                }
+                batchCount += 1
+                currentOffset += batchSize
+            }
+        }
+        
+        print("📧 [YahooMailService] Progressive fetch completed. Total emails: \(allEmails.count)")
+        return allEmails
     }
     
     /**

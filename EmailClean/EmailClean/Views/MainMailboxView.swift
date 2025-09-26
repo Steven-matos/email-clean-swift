@@ -1,11 +1,12 @@
 import SwiftUI
 
 struct MainMailboxView: View {
-    @StateObject private var viewModel = MainViewModel()
+    @EnvironmentObject var serviceManager: ServiceManager
     @EnvironmentObject var appStateManager: AppStateManager
     @State private var selectedEmail: Email?
     @State private var showingAccountSettings = false
     @State private var showingEmailCompose = false
+    @State private var selectedCategory: EmailCategory = .primary
     
     var body: some View {
         NavigationView {
@@ -44,7 +45,9 @@ struct MainMailboxView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack(spacing: 12) {
                         Button {
-                            viewModel.refreshEmails()
+                            Task {
+                                await serviceManager.refreshAllEmails()
+                            }
                         } label: {
                             ZStack {
                                 Circle()
@@ -56,7 +59,7 @@ struct MainMailboxView: View {
                                     .foregroundColor(.primaryBlue)
                             }
                         }
-                        .disabled(viewModel.isLoading)
+                        .disabled(serviceManager.isLoading)
                         
                         Button {
                             showingEmailCompose = true
@@ -75,7 +78,7 @@ struct MainMailboxView: View {
                 }
             }
             .refreshable {
-                await viewModel.refreshEmailsAsync()
+                await serviceManager.refreshAllEmails()
             }
             .sheet(isPresented: $showingAccountSettings) {
                 AccountSettingsView()
@@ -88,7 +91,9 @@ struct MainMailboxView: View {
             }
         }
         .onAppear {
-            viewModel.loadEmails()
+            Task {
+                await serviceManager.refreshAllEmails()
+            }
         }
     }
     
@@ -98,10 +103,10 @@ struct MainMailboxView: View {
                 ForEach(EmailCategory.allCases, id: \.self) { category in
                     CategoryFilterButton(
                         category: category,
-                        isSelected: viewModel.selectedCategory == category,
-                        count: viewModel.getCategoryCount(category)
+                        isSelected: selectedCategory == category,
+                        count: serviceManager.getCategoryCount(category)
                     ) {
-                        viewModel.selectCategory(category)
+                        selectedCategory = category
                     }
                 }
             }
@@ -120,26 +125,26 @@ struct MainMailboxView: View {
     
     private var emailListSection: some View {
         Group {
-            if viewModel.isLoading && viewModel.emails.isEmpty {
+            if serviceManager.isLoading && serviceManager.allEmails.isEmpty {
                 LoadingView()
-            } else if viewModel.filteredEmails.isEmpty {
-                EmptyStateView(category: viewModel.selectedCategory)
+            } else if filteredEmails.isEmpty {
+                EmptyStateView(category: selectedCategory)
             } else {
                 List {
-                    ForEach(viewModel.filteredEmails) { email in
+                    ForEach(filteredEmails) { email in
                         EmailRowView(email: email) {
                             selectedEmail = email
                         }
                         .swipeActions(edge: .trailing) {
                             Button {
-                                viewModel.deleteEmail(email)
+                                // TODO: Implement delete functionality
                             } label: {
                                 Label("Delete", systemImage: "trash")
                             }
                             .tint(.error)
                             
                             Button {
-                                viewModel.archiveEmail(email)
+                                // TODO: Implement archive functionality
                             } label: {
                                 Label("Archive", systemImage: "archivebox")
                             }
@@ -147,7 +152,7 @@ struct MainMailboxView: View {
                         }
                         .swipeActions(edge: .leading) {
                             Button {
-                                viewModel.markAsRead(email)
+                                // TODO: Implement mark as read functionality
                             } label: {
                                 Label(email.isRead ? "Mark Unread" : "Mark Read", 
                                       systemImage: email.isRead ? "envelope.badge" : "envelope.open")
@@ -160,6 +165,17 @@ struct MainMailboxView: View {
                 .background(Color.primaryBackground)
             }
         }
+    }
+    
+    // Computed property for filtered emails
+    private var filteredEmails: [Email] {
+        let categoryFiltered = serviceManager.allEmails.filter { email in
+            selectedCategory == .primary ? 
+                email.category == .primary : 
+                email.category == selectedCategory
+        }
+        
+        return categoryFiltered.sorted { $0.timestamp > $1.timestamp }
     }
 }
 

@@ -7,11 +7,20 @@ import SwiftUI
 struct YahooAccountManagerView: View {
     
     // MARK: - State Properties
-    @StateObject private var yahooOAuthService = YahooOAuthService()
+    @EnvironmentObject var serviceManager: ServiceManager
     @State private var showingAddAccount = false
     @State private var selectedAccount: YahooAccount?
     @State private var showingDeleteConfirmation = false
     @State private var accountToDelete: YahooAccount?
+    
+    // Computed properties for easier access
+    private var yahooOAuthService: YahooOAuthService {
+        serviceManager.yahooOAuthService
+    }
+    
+    private var emailStatistics: EmailStatistics {
+        serviceManager.emailStatistics
+    }
     
     var body: some View {
         NavigationView {
@@ -73,21 +82,28 @@ struct YahooAccountManagerView: View {
                     .foregroundColor(.secondary)
             }
             
-            // Account Statistics
+            // Email Statistics
             if !yahooOAuthService.connectedAccounts.isEmpty {
                 HStack(spacing: 20) {
                     StatCard(
-                        title: "Connected",
-                        value: "\(yahooOAuthService.connectedAccounts.count)",
-                        icon: "checkmark.circle.fill",
-                        color: .green
+                        title: "Total Emails",
+                        value: "\(emailStatistics.totalEmails)",
+                        icon: "envelope.fill",
+                        color: .blue
                     )
                     
                     StatCard(
-                        title: "Active",
-                        value: "\(yahooOAuthService.connectedAccounts.filter { !$0.isExpired }.count)",
-                        icon: "bolt.fill",
-                        color: .blue
+                        title: "Unread",
+                        value: "\(emailStatistics.unreadEmails)",
+                        icon: "envelope.badge.fill",
+                        color: .orange
+                    )
+                    
+                    StatCard(
+                        title: "Accounts",
+                        value: "\(emailStatistics.connectedAccounts)",
+                        icon: "person.2.fill",
+                        color: .green
                     )
                 }
                 .padding(.horizontal)

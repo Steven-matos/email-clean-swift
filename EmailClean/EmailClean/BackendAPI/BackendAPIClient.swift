@@ -30,7 +30,7 @@ class BackendAPIClient: BackendAPIClientProtocol {
         useMockMode
     }
     
-    init(useMockMode: Bool = true) { // Default to mock mode for development
+    init(useMockMode: Bool = false) { // Default to real mode now that OAuth is working
         self.useMockMode = useMockMode
         // Configure date formatting
         let dateFormatter = DateFormatter()
